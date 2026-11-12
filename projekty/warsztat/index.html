@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoSerwis Piston – projekt demonstracyjny</title>
+<meta name="description" content="Projekt demonstracyjny strony warsztatu samochodowego z kalkulatorem wyceny i sprawdzaniem statusu naprawy.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffc21a'/%3E%3Ctext x='50%25' y='68%25' text-anchor='middle' font-family='Arial Black,Arial' font-weight='900' font-size='36' fill='%23121417'%3EP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111316;--panel:#1a1d22;--panel-2:#22262c;--line:#2d3239;
+  --yellow:#ffc21a;--yellow-2:#ffd75e;--text:#d6d9de;--muted:#8d939c;--white:#f4f5f7;
+  --green:#3ddc84;--red:#ff5d5d;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:Barlow,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;color:var(--white);text-transform:uppercase;line-height:1;letter-spacing:.01em}
+.wrap{width:min(1160px,100% - 40px);margin-inline:auto}
+section{padding:96px 0}
+.kicker{display:inline-flex;align-items:center;gap:10px;font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--yellow);font-size:.95rem}
+.kicker::before{content:"";width:28px;height:3px;background:var(--yellow)}
+.sec-head{max-width:640px;margin-bottom:46px}
+.sec-head h2{font-size:clamp(2.4rem,5vw,3.6rem);margin:12px 0 14px}
+.sec-head p{color:var(--muted);font-size:1.06rem}
+
+.demo-bar{background:var(--yellow);color:#111316;font-size:.82rem;text-align:center;padding:8px 16px;font-weight:500}
+.demo-bar a{font-weight:700;text-decoration:underline;text-underline-offset:3px;margin-left:6px}
+
+header{position:sticky;top:0;z-index:40;background:rgba(17,19,22,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;gap:18px}
+.logo{display:flex;align-items:center;gap:10px;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.6rem;color:var(--white);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+.logo-mark{width:38px;height:38px;border-radius:9px;background:var(--yellow);color:var(--bg);display:grid;place-items:center}
+.logo-mark svg{width:24px;height:24px}
+.logo span span{color:var(--yellow)}
+.menu{display:flex;gap:28px;list-style:none;font-weight:600;font-size:.95rem;text-transform:uppercase;letter-spacing:.06em}
+.menu a{color:var(--muted);transition:color .2s;white-space:nowrap}
+.menu a:hover{color:var(--yellow)}
+.nav-right{display:flex;align-items:center;gap:14px}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;padding:7px 12px;border-radius:999px;background:rgba(61,220,132,.1);color:var(--green);border:1px solid rgba(61,220,132,.25);white-space:nowrap}
+.status i{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 0 currentColor;animation:ping 2s infinite}
+.status.closed{background:rgba(255,93,93,.1);color:var(--red);border-color:rgba(255,93,93,.25)}
+@keyframes ping{70%{box-shadow:0 0 0 7px transparent}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 26px;border-radius:10px;font-weight:700;border:0;cursor:pointer;font-size:1rem;text-transform:uppercase;letter-spacing:.06em;font-family:"Barlow Condensed",sans-serif;white-space:nowrap;transition:background .2s,transform .2s,opacity .2s}
+.btn:hover:not(:disabled){transform:translateY(-2px)}
+.btn-y{background:var(--yellow);color:var(--bg)}
+.btn-y:hover:not(:disabled){background:var(--yellow-2)}
+.btn-y:disabled{opacity:.35;cursor:not-allowed}
+.btn-dark{background:var(--panel-2);color:var(--white);border:1px solid var(--line)}
+.btn-dark:hover{border-color:var(--yellow)}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;padding:80px 0 100px;background:
+  radial-gradient(700px 400px at 80% 30%,rgba(255,194,26,.12),transparent 70%),
+  repeating-linear-gradient(-45deg,transparent 0 40px,rgba(255,255,255,.015) 40px 80px)}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.hero h1{font-size:clamp(3rem,7.4vw,6rem);margin:18px 0 22px}
+.hero h1 span{color:var(--yellow)}
+.lead{font-size:1.15rem;max-width:540px;color:var(--text)}
+.cta{display:flex;flex-wrap:wrap;gap:14px;margin:32px 0 40px}
+.facts{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:36px}
+.facts b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:2.1rem;color:var(--white);line-height:1}
+.facts span{font-size:.88rem;color:var(--muted)}
+.gears{position:relative;aspect-ratio:1;max-width:460px;width:100%;margin-left:auto}
+.gear{position:absolute;color:var(--yellow)}
+.gear svg{width:100%;height:100%}
+.g1{inset:6% 22% 22% 6%;animation:rot 18s linear infinite}
+.g2{width:42%;height:42%;right:4%;bottom:4%;color:#3a3f47;animation:rot 12s linear infinite reverse}
+.g3{width:24%;height:24%;right:8%;top:6%;color:#575d66;animation:rot 9s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Usługi */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.svc{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:30px 26px;position:relative;overflow:hidden;transition:border-color .25s,transform .25s}
+.svc::after{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:var(--yellow);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.svc:hover{transform:translateY(-4px);border-color:#3a3f47}
+.svc:hover::after{transform:scaleX(1)}
+.svc-ico{width:50px;height:50px;border-radius:12px;background:rgba(255,194,26,.1);color:var(--yellow);display:grid;place-items:center;margin-bottom:18px}
+.svc-ico svg{width:26px;height:26px}
+.svc h3{font-size:1.6rem;margin-bottom:8px}
+.svc p{color:var(--muted);font-size:.95rem}
+
+/* Kalkulator */
+.calc-sec{background:var(--panel)}
+.calc{display:grid;grid-template-columns:1.25fr .75fr;gap:24px;align-items:start}
+.calc-box{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.calc-box h3{font-size:1.4rem;margin-bottom:16px;color:var(--yellow)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:30px}
+.seg button{background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;padding:14px 8px;color:var(--text);font-weight:600;cursor:pointer;transition:.2s;line-height:1.25}
+.seg button small{display:block;color:var(--muted);font-weight:500;font-size:.78rem;margin-top:3px}
+.seg button:hover{border-color:#4a5059}
+.seg button[aria-pressed="true"]{border-color:var(--yellow);background:rgba(255,194,26,.08);color:var(--white)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:12px;background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;cursor:pointer;transition:.2s}
+.check:hover{border-color:#4a5059}
+.check input{appearance:none;-webkit-appearance:none;flex:none;width:22px;height:22px;border-radius:6px;border:2px solid #4a5059;display:grid;place-items:center;cursor:pointer;transition:.2s}
+.check input:checked{background:var(--yellow);border-color:var(--yellow)}
+.check input:checked::after{content:"";width:6px;height:11px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.check input:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.check:has(input:checked){border-color:rgba(255,194,26,.5);background:rgba(255,194,26,.05)}
+.check b{display:block;color:var(--white);font-weight:600;font-size:.95rem;line-height:1.3}
+.check small{color:var(--muted);font-size:.82rem}
+.result{position:sticky;top:96px;background:linear-gradient(160deg,#2a2410,var(--bg) 60%);border:1px solid rgba(255,194,26,.3);border-radius:var(--r);padding:28px}
+.result p.lbl{font-size:.85rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600}
+.big{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:clamp(2.4rem,4.6vw,3.2rem);color:var(--yellow);line-height:1.05;margin:6px 0 4px}
+.result .note{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+.est-list{list-style:none;display:grid;gap:6px;margin-bottom:20px;font-size:.92rem;border-top:1px solid var(--line);padding-top:14px}
+.est-list li{display:flex;justify-content:space-between;gap:12px}
+.est-list li span:last-child{color:var(--white);white-space:nowrap}
+.result .btn{width:100%}
+.book{display:grid;gap:10px;margin-top:4px}
+.book[hidden]{display:none}
+.field{width:100%;font-size:1rem;padding:13px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel-2);color:var(--white)}
+.field:focus{outline:none;border-color:var(--yellow)}
+.ok{margin-top:14px;padding:14px;border-radius:10px;background:rgba(61,220,132,.1);border:1px solid rgba(61,220,132,.3);color:var(--green);font-weight:600;font-size:.95rem}
+.ok[hidden]{display:none}
+.disclaimer{font-size:.8rem;color:var(--muted);margin-top:14px}
+
+/* Status naprawy */
+.track{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;align-items:start}
+.track-form{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.track-form h3{font-size:1.5rem;margin-bottom:6px}
+.track-form p{color:var(--muted);font-size:.95rem;margin-bottom:18px}
+.track-row{display:flex;gap:10px}
+.track-row .field{text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.demo-codes{margin-top:14px;font-size:.88rem;color:var(--muted)}
+.demo-codes button{background:none;border:0;color:var(--yellow);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:.88rem}
+.track-out{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:28px;min-height:100%}
+.placeholder{display:grid;place-items:center;text-align:center;color:var(--muted);min-height:240px}
+.placeholder div{font-size:2.6rem;margin-bottom:8px}
+.car{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.car h3{font-size:1.8rem}
+.plate{display:inline-block;margin-top:8px;background:#fff;color:#111;font-weight:700;font-family:"Barlow Condensed",sans-serif;font-size:1.1rem;letter-spacing:.12em;padding:2px 12px 2px 26px;border-radius:5px;border:2px solid #111;position:relative}
+.plate::before{content:"PL";position:absolute;left:0;top:0;bottom:0;width:18px;background:#1d4fb8;color:#fff;font-size:.55rem;line-height:1;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;letter-spacing:0}
+.pill{font-size:.85rem;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(255,194,26,.12);color:var(--yellow)}
+.pill.done{background:rgba(61,220,132,.12);color:var(--green)}
+.timeline{list-style:none;display:grid;gap:0;margin-bottom:20px}
+.timeline li{display:grid;grid-template-columns:28px 1fr;gap:14px;position:relative;padding-bottom:20px}
+.timeline li:not(:last-child)::before{content:"";position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--line)}
+.timeline li.done:not(:last-child)::before{background:var(--yellow)}
+.dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--bg);display:grid;place-items:center;font-size:.8rem;font-weight:700;color:var(--muted)}
+.done .dot{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
+.now .dot{border-color:var(--yellow);color:var(--yellow);animation:glow 1.6s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(255,194,26,.15)}}
+.timeline b{display:block;color:var(--white)}
+.timeline small{color:var(--muted)}
+.memo{background:var(--bg);border-left:3px solid var(--yellow);border-radius:0 10px 10px 0;padding:14px 16px;font-size:.95rem}
+.memo b{color:var(--white)}
+.err{color:var(--red);font-weight:600}
+
+/* Kontakt */
+.contact-sec{background:var(--panel)}
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.c-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.c-card h3{font-size:1.5rem;margin-bottom:12px}
+.c-card p{color:var(--muted)}
+.c-card .big-phone{font-family:"Barlow Condensed",sans-serif;font-size:2rem;color:var(--yellow);font-weight:700;display:block;margin:6px 0}
+.hours{list-style:none;display:grid;gap:6px}
+.hours li{display:flex;justify-content:space-between;color:var(--muted)}
+.hours li.today{color:var(--yellow);font-weight:700}
+
+footer{text-align:center;padding:28px 0;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line)}
+
+@media (max-width:1120px){.menu{display:none}}
+@media (max-width:1000px){
+  .hero-grid,.calc,.track{grid-template-columns:1fr}
+  .gears{max-width:340px;margin:0 auto}
+  .svc-grid,.contact-grid{grid-template-columns:repeat(2,1fr)}
+  .result{position:static}
+}
+@media (max-width:640px){
+  section{padding:72px 0}
+  .svc-grid,.contact-grid,.checks{grid-template-columns:1fr}
+  .seg{grid-template-columns:1fr 1fr}
+  .facts{grid-template-columns:repeat(3,1fr);gap:16px}
+  .facts b{font-size:1.7rem}
+  .nav .btn{display:none}
+  .st-sub{display:none}
+  .logo{font-size:1.3rem}
+  .logo-mark{width:32px;height:32px}
+  .calc-box,.result,.track-form,.track-out{padding:20px}
+  .track-row{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">Projekt demonstracyjny – firma fikcyjna. Autor: Sebastian Jakubiec <a href="../../index.html">← Wróć do portfolio</a></div>
+
+<header>
+  <nav class="wrap nav">
+    <a href="#" class="logo">
+      <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></span>
+      <span>Auto<span>Serwis</span> Piston</span>
+    </a>
+    <ul class="menu">
+      <li><a href="#uslugi">Usługi</a></li>
+      <li><a href="#wycena">Wycena</a></li>
+      <li><a href="#naprawa">Status naprawy</a></li>
+      <li><a href="#kontakt">Kontakt</a></li>
+    </ul>
+    <div class="nav-right">
+      <span class="status" id="status"><i></i><span id="st-main">…</span><span class="st-sub" id="st-sub"></span></span>
+      <a href="#wycena" class="btn btn-y">Wyceń naprawę</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker">Mechanika · Diagnostyka · Klimatyzacja</p>
+      <h1>Naprawimy Twoje auto <span>szybko i uczciwie</span></h1>
+      <p class="lead">Kompleksowy serwis samochodów osobowych i dostawczych. Zanim zaczniemy, zawsze dostajesz wycenę – bez ukrytych kosztów i niespodzianek przy odbiorze.</p>
+      <div class="cta">
+        <a href="#wycena" class="btn btn-y">Sprawdź koszt naprawy</a>
+        <a href="#naprawa" class="btn btn-dark">Status mojego auta</a>
+      </div>
+      <div class="facts">
+        <div><b>24 h</b><span>diagnoza</span></div>
+        <div><b>12 mies.</b><span>gwarancji na naprawy</span></div>
+        <div><b>0 zł</b><span>za wycenę</span></div>
+      </div>
+    </div>
+    <div class="gears" aria-hidden="true">
+      <div class="gear g1"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="78" fill="none" stroke="currentColor" stroke-width="26" stroke-dasharray="22 18.84"/><circle cx="100" cy="100" r="62" fill="currentColor"/><circle cx="100" cy="100" r="24" fill="#111316"/></svg></div>
+      <div class="gear g2"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="76" fill="none" stroke="currentColor" stroke-width="30" stroke-dasharray="24 23.75"/><circle cx="100" cy="100" r="60" fill="currentColor"/><circle cx="100" cy="100" r="22" fill="#111316"/></svg></div>
+      <div class="gear g3"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="74" fill="none" stroke="currentColor" stroke-width="32" stroke-dasharray="28 30.1"/><circle cx="100" cy="100" r="56" fill="currentColor"/><circle cx="100" cy="100" r="22" fill="#111316"/></svg></div>
+    </div>
+  </div>
+</section>
+
+<section id="uslugi">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Usługi</p>
+      <h2>Czym się zajmujemy</h2>
+      <p>Obsługujemy wszystkie marki aut osobowych i dostawczych do 3,5 t.</p>
+    </div>
+    <div class="svc-grid">
+      <article class="svc"><div class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></div><h3>Mechanika</h3><p>Rozrząd, sprzęgło, zawieszenie, układ wydechowy i bieżące naprawy.</p></article>
+      <article class="svc"><div class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg></div><h3>Diagnostyka</h3><p>Komputerowa diagnostyka usterek i kasowanie błędów wszystkich marek.</p></article>
+      <article class="svc"><div class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/><path d="m9 4 3 3 3-3M9 20l3-3 3 3M4 9l3 3-3 3M20 9l-3 3 3 3"/></svg></div><h3>Klimatyzacja</h3><p>Serwis, odgrzybianie i napełnianie klimatyzacji, wykrywanie nieszczelności.</p></article>
+      <article class="svc"><div class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg></div><h3>Opony</h3><p>Wymiana sezonowa, wyważanie, naprawa i przechowywanie opon.</p></article>
+      <article class="svc"><div class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3a9 9 0 0 1 9 9"/></svg></div><h3>Hamulce</h3><p>Klocki, tarcze, płyn hamulcowy i regeneracja zacisków.</p></article>
+      <article class="svc"><div class="svc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><h3>Elektryka</h3><p>Akumulatory, alternatory, rozruszniki i oświetlenie.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="wycena" class="calc-sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Kalkulator</p>
+      <h2>Sprawdź, ile zapłacisz</h2>
+      <p>Wybierz rodzaj auta i zaznacz, co trzeba zrobić. Od razu zobaczysz orientacyjny koszt części i robocizny.</p>
+    </div>
+    <div class="calc">
+      <div class="calc-box">
+        <h3>1. Rodzaj auta</h3>
+        <div class="seg" id="classes"></div>
+        <h3>2. Co trzeba zrobić?</h3>
+        <div class="checks" id="services"></div>
+      </div>
+      <aside class="result" aria-live="polite">
+        <p class="lbl">Szacowany koszt</p>
+        <div class="big" id="est">0 zł</div>
+        <p class="note" id="est-note">Zaznacz usługi, aby zobaczyć wycenę.</p>
+        <ul class="est-list" id="est-list" hidden></ul>
+        <button class="btn btn-y" id="book-btn" disabled>Umów termin z tą wyceną</button>
+        <form class="book" id="book" hidden>
+          <input class="field" id="b-phone" placeholder="Twój numer telefonu" inputmode="tel" required>
+          <button class="btn btn-y" type="submit">Wyślij – oddzwonimy</button>
+        </form>
+        <p class="ok" id="ok" hidden></p>
+        <p class="disclaimer">Wycena orientacyjna (części + robocizna). Dokładną cenę podamy po obejrzeniu auta.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="naprawa">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Status naprawy</p>
+      <h2>Gdzie jest moje auto?</h2>
+      <p>Nie musisz dzwonić – wpisz numer zlecenia z potwierdzenia i sprawdź, na jakim etapie jest naprawa.</p>
+    </div>
+    <div class="track">
+      <form class="track-form" id="track-form">
+        <h3>Numer zlecenia</h3>
+        <p>Znajdziesz go na potwierdzeniu przyjęcia auta.</p>
+        <div class="track-row">
+          <input class="field" id="code" placeholder="np. AS-2041" autocomplete="off" required>
+          <button class="btn btn-y" type="submit">Sprawdź</button>
+        </div>
+        <p class="demo-codes">Kody demo: <button type="button" data-code="AS-2041">AS-2041</button> · <button type="button" data-code="AS-1987">AS-1987</button></p>
+      </form>
+      <div class="track-out" id="track-out">
+        <div class="placeholder"><div><div>🚗</div>Wpisz numer zlecenia, aby zobaczyć status.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="kontakt" class="contact-sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Kontakt</p>
+      <h2>Przyjedź lub zadzwoń</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="c-card"><h3>Telefon</h3><span class="big-phone">123 456 789</span><p>Odbieramy w godzinach otwarcia. Poza nimi zostaw SMS – oddzwonimy.</p></div>
+      <div class="c-card"><h3>Adres</h3><p>ul. Warsztatowa 5<br>00-000 Twoje Miasto</p><p style="margin-top:12px">serwis@piston.example</p></div>
+      <div class="c-card">
+        <h3>Godziny</h3>
+        <ul class="hours" id="hours">
+          <li data-g="pt"><span>Pon – Pt</span><span>8:00–18:00</span></li>
+          <li data-g="sob"><span>Sobota</span><span>8:00–14:00</span></li>
+          <li data-g="nd"><span>Niedziela</span><span>nieczynne</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>© 2026 AutoSerwis Piston · projekt demonstracyjny, firma fikcyjna</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  /* ---------- Godziny otwarcia na żywo ---------- */
+  const HOURS = { 0: null, 1: [8, 18], 2: [8, 18], 3: [8, 18], 4: [8, 18], 5: [8, 18], 6: [8, 14] };
+  const DAYS = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+  function updateStatus() {
+    const now = new Date();
+    const d = now.getDay(), h = now.getHours() + now.getMinutes() / 60;
+    const today = HOURS[d];
+    let sub, open = false;
+    if (today && h >= today[0] && h < today[1]) {
+      open = true; sub = `do ${today[1]}:00`;
+    } else if (today && h < today[0]) {
+      sub = `otwieramy o ${today[0]}:00`;
+    } else {
+      let n = 1; while (!HOURS[(d + n) % 7]) n++;
+      const nd = (d + n) % 7;
+      sub = `otwieramy ${n === 1 ? 'jutro' : 'w ' + DAYS[nd].replace('środa', 'środę').replace('sobota', 'sobotę').replace('niedziela', 'niedzielę')} o ${HOURS[nd][0]}:00`;
+    }
+    $('st-main').textContent = open ? 'Otwarte' : 'Zamknięte';
+    $('st-sub').textContent = ` · ${sub}`;
+    $('status').classList.toggle('closed', !open);
+    const g = d === 0 ? 'nd' : d === 6 ? 'sob' : 'pt';
+    document.querySelectorAll('#hours li').forEach(li => li.classList.toggle('today', li.dataset.g === g));
+  }
+  updateStatus();
+  setInterval(updateStatus, 60000);
+
+  /* ---------- Kalkulator wyceny ---------- */
+  const CLASSES = [
+    { id: 'miejskie', name: 'Miejskie', ex: 'np. Yaris, Fabia', k: 1 },
+    { id: 'kompakt', name: 'Kompakt / sedan', ex: 'np. Golf, Octavia', k: 1.15 },
+    { id: 'suv', name: 'SUV', ex: 'np. Tucson, Kodiaq', k: 1.3 },
+    { id: 'dostawcze', name: 'Dostawcze', ex: 'do 3,5 t', k: 1.45 },
+  ];
+  const SERVICES = [
+    { id: 'olej', name: 'Wymiana oleju i filtrów', min: 180, max: 280 },
+    { id: 'diag', name: 'Diagnostyka komputerowa', min: 100, max: 150 },
+    { id: 'klocki', name: 'Klocki hamulcowe (1 oś)', min: 200, max: 350 },
+    { id: 'tarcze', name: 'Tarcze + klocki (1 oś)', min: 450, max: 750 },
+    { id: 'rozrzad', name: 'Rozrząd z pompą wody', min: 900, max: 1600 },
+    { id: 'klima', name: 'Serwis klimatyzacji', min: 200, max: 300 },
+    { id: 'opony', name: 'Wymiana opon (4 szt.)', min: 100, max: 160 },
+    { id: 'geometria', name: 'Ustawienie geometrii', min: 150, max: 220 },
+  ];
+  let cls = 'kompakt';
+  const picked = new Set();
+  const round10 = n => Math.round(n / 10) * 10;
+  const fmt = n => n.toLocaleString('pl-PL') + ' zł';
+
+  CLASSES.forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `${c.name}<small>${c.ex}</small>`;
+    b.setAttribute('aria-pressed', c.id === cls);
+    b.addEventListener('click', () => {
+      cls = c.id;
+      $('classes').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      calc();
+    });
+    $('classes').appendChild(b);
+  });
+
+  SERVICES.forEach(s => {
+    const l = document.createElement('label');
+    l.className = 'check';
+    l.innerHTML = `<input type="checkbox" value="${s.id}"><span><b>${s.name}</b><small id="r-${s.id}"></small></span>`;
+    l.querySelector('input').addEventListener('change', e => {
+      e.target.checked ? picked.add(s.id) : picked.delete(s.id);
+      calc();
+    });
+    $('services').appendChild(l);
+  });
+
+  function calc() {
+    const k = CLASSES.find(c => c.id === cls).k;
+    SERVICES.forEach(s => { $('r-' + s.id).textContent = `${fmt(round10(s.min * k))} – ${fmt(round10(s.max * k))}`; });
+    const sel = SERVICES.filter(s => picked.has(s.id));
+    const min = sel.reduce((a, s) => a + round10(s.min * k), 0);
+    const max = sel.reduce((a, s) => a + round10(s.max * k), 0);
+    const list = $('est-list');
+    if (!sel.length) {
+      $('est').textContent = '0 zł';
+      $('est-note').textContent = 'Zaznacz usługi, aby zobaczyć wycenę.';
+      list.hidden = true;
+    } else {
+      $('est').textContent = `${fmt(min)} – ${fmt(max)}`;
+      $('est-note').textContent = `${sel.length} ${sel.length === 1 ? 'usługa' : sel.length < 5 ? 'usługi' : 'usług'} · ${CLASSES.find(c => c.id === cls).name.toLowerCase()}`;
+      list.innerHTML = sel.map(s => `<li><span>${s.name}</span><span>${fmt(round10(s.min * k))} – ${fmt(round10(s.max * k))}</span></li>`).join('');
+      list.hidden = false;
+    }
+    $('book-btn').disabled = !sel.length;
+    if (!sel.length) { $('book').hidden = true; $('book-btn').hidden = false; }
+    $('ok').hidden = true;
+  }
+  calc();
+
+  $('book-btn').addEventListener('click', () => {
+    $('book-btn').hidden = true;
+    $('book').hidden = false;
+    $('b-phone').focus();
+  });
+  $('book').addEventListener('submit', e => {
+    e.preventDefault();
+    if ($('b-phone').value.replace(/\D/g, '').length < 9) { $('b-phone').focus(); return; }
+    $('book').hidden = true;
+    $('book-btn').hidden = false;
+    $('ok').textContent = '✓ Dziękujemy! Oddzwonimy w ciągu godziny, żeby ustalić termin. (W wersji demo nic nie zostało wysłane.)';
+    $('ok').hidden = false;
+    $('b-phone').value = '';
+  });
+
+  /* ---------- Status naprawy ---------- */
+  const ORDERS = {
+    'AS-2041': { car: 'Skoda Octavia III', plate: 'XX 12345', step: 2, pickup: 'jutro po 15:00',
+      memo: 'Wymieniamy rozrząd i pompę wody. Części dotarły rano, naprawa przebiega zgodnie z planem.' },
+    'AS-1987': { car: 'Toyota Yaris', plate: 'XX 98765', step: 4, pickup: 'dziś do 18:00',
+      memo: 'Auto gotowe! Wymieniliśmy klocki i tarcze z przodu oraz olej z filtrami. Zapraszamy po odbiór.' },
+  };
+  const STEPS = [
+    ['Przyjęte do serwisu', 'Auto czeka na swoją kolej'],
+    ['Diagnoza', 'Sprawdzamy usterkę i przygotowujemy wycenę'],
+    ['Naprawa', 'Mechanik pracuje nad Twoim autem'],
+    ['Kontrola jakości', 'Jazda próbna i końcowe sprawdzenie'],
+    ['Gotowe do odbioru', 'Możesz odebrać auto'],
+  ];
+  function track(code) {
+    const out = $('track-out');
+    const o = ORDERS[code];
+    if (!o) {
+      out.innerHTML = `<div class="placeholder"><div><div>🔍</div><span class="err">Nie znaleźliśmy zlecenia ${code.replace(/[<>&"]/g, '')}.</span><br>Sprawdź numer albo użyj kodu demo AS-2041.</div></div>`;
+      return;
+    }
+    const ready = o.step === STEPS.length - 1;
+    out.innerHTML = `
+      <div class="car">
+        <div><h3>${o.car}</h3><span class="plate">${o.plate}</span></div>
+        <span class="pill ${ready ? 'done' : ''}">${ready ? 'Gotowe' : 'W trakcie'} · odbiór ${o.pickup}</span>
+      </div>
+      <ol class="timeline">
+        ${STEPS.map(([t, s], i) => `<li class="${i < o.step || (ready && i === o.step) ? 'done' : i === o.step ? 'now' : ''}">
+          <span class="dot">${i < o.step || (ready && i === o.step) ? '✓' : i + 1}</span>
+          <div><b>${t}</b><small>${s}</small></div></li>`).join('')}
+      </ol>
+      <div class="memo"><b>Notatka mechanika:</b> ${o.memo}</div>`;
+  }
+  $('track-form').addEventListener('submit', e => {
+    e.preventDefault();
+    track($('code').value.trim().toUpperCase());
+  });
+  document.querySelectorAll('[data-code]').forEach(b => b.addEventListener('click', () => {
+    $('code').value = b.dataset.code;
+    track(b.dataset.code);
+  }));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trattoria Rosmarino – projekt demonstracyjny</title>
+<meta name="description" content="Projekt demonstracyjny strony restauracji z menu, zamówieniami online i rezerwacją stolika.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23c4532d'/%3E%3Ctext x='50%25' y='64%25' text-anchor='middle' font-family='Georgia' font-size='34' font-style='italic' fill='%23fbf5ec'%3ER%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fbf5ec;--paper:#f4eadb;--terra:#c4532d;--terra-2:#a8411f;
+  --olive:#5f6b3a;--olive-soft:#e7e8d6;--dark:#2b1d16;--text:#4a3a31;--muted:#8a776b;
+  --line:#e7dac8;--r:18px;--shadow:0 24px 50px -26px rgba(43,29,22,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{font-family:"DM Sans",system-ui,sans-serif;background:var(--cream);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select{font-family:inherit}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;color:var(--dark);line-height:1.08;font-weight:600}
+.wrap{width:min(1160px,100% - 40px);margin-inline:auto}
+section{padding:96px 0}
+.kicker{font-family:Fraunces,serif;font-style:italic;color:var(--terra);font-size:1.15rem}
+.sec-head{max-width:640px;margin-bottom:44px}
+.sec-head.center{text-align:center;margin-inline:auto}
+.sec-head h2{font-size:clamp(2.1rem,4.2vw,3.2rem);margin:6px 0 14px}
+.sec-head p{color:var(--muted);font-size:1.05rem}
+
+.demo-bar{background:var(--dark);color:#e9d9c6;font-size:.82rem;text-align:center;padding:8px 16px}
+.demo-bar a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px;margin-left:6px}
+
+header{position:sticky;top:0;z-index:40;background:rgba(251,245,236,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px}
+.logo{font-family:Fraunces,serif;font-size:1.6rem;font-weight:700;color:var(--dark);line-height:1}
+.logo em{color:var(--terra);font-style:italic;font-weight:500}
+.logo small{display:block;font:700 .62rem "DM Sans",sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--olive);margin-top:4px}
+.menu{display:flex;gap:30px;list-style:none;font-weight:500}
+.menu a:hover{color:var(--terra)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 26px;border-radius:999px;font-weight:700;border:0;cursor:pointer;font-size:.98rem;transition:background .2s,transform .2s,opacity .2s}
+.btn:hover:not(:disabled){transform:translateY(-2px)}
+.btn-terra{background:var(--terra);color:#fff;box-shadow:0 12px 26px -12px rgba(196,83,45,.8)}
+.btn-terra:hover:not(:disabled){background:var(--terra-2)}
+.btn-terra:disabled{opacity:.45;cursor:not-allowed}
+.btn-outline{background:transparent;border:1.5px solid var(--dark);color:var(--dark)}
+.btn-outline:hover{background:var(--dark);color:#fff}
+.btn-sm{padding:10px 20px;font-size:.9rem}
+
+/* Hero */
+.hero{padding:64px 0 90px;overflow:hidden;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+.hero h1{font-size:clamp(2.8rem,6.4vw,5.2rem);margin:10px 0 22px;letter-spacing:-.02em}
+.hero h1 em{font-style:italic;color:var(--terra);font-weight:500}
+.lead{font-size:1.14rem;max-width:520px}
+.cta{display:flex;flex-wrap:wrap;gap:14px;margin:32px 0 38px}
+.info{display:flex;flex-wrap:wrap;gap:12px;list-style:none}
+.info li{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500}
+.pizza-wrap{position:relative;aspect-ratio:1;max-width:500px;margin-left:auto;width:100%}
+.board{position:absolute;inset:4%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c58b52,#8f5a2e);box-shadow:var(--shadow)}
+.pizza{position:absolute;inset:9%;animation:spin 80s linear infinite;filter:drop-shadow(0 10px 18px rgba(43,29,22,.35))}
+@keyframes spin{to{transform:rotate(360deg)}}
+.deco{position:absolute;font-size:2.2rem;animation:bob 5s ease-in-out infinite}
+.d1{top:2%;left:4%}.d2{bottom:6%;left:-2%;animation-delay:-1.5s}.d3{top:10%;right:0;animation-delay:-3s}
+@keyframes bob{50%{transform:translateY(-10px) rotate(8deg)}}
+.tag-hot{position:absolute;bottom:12%;right:2%;background:var(--olive);color:#fff;border-radius:16px;padding:12px 16px;font-size:.85rem;box-shadow:var(--shadow);line-height:1.3}
+.tag-hot b{display:block;font-family:Fraunces,serif;font-size:1.3rem}
+
+/* Menu */
+.menu-sec{background:var(--paper)}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:38px}
+.tab{background:transparent;border:1.5px solid var(--line);border-radius:999px;padding:10px 20px;font-weight:700;font-size:.92rem;color:var(--text);cursor:pointer;transition:.2s}
+.tab:hover{border-color:var(--terra);color:var(--terra)}
+.tab[aria-selected="true"]{background:var(--dark);border-color:var(--dark);color:#fff}
+.dishes{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.dish{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;background:var(--cream);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;transition:transform .2s,box-shadow .2s;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+.dish:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.dish-ico{width:64px;height:64px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:1.9rem;border:1px solid var(--line)}
+.dish h3{font-size:1.2rem;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.dish p{color:var(--muted);font-size:.9rem;margin-top:2px}
+.badge{font:700 .66rem "DM Sans",sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px}
+.badge.wege{background:var(--olive-soft);color:var(--olive)}
+.badge.ostre{background:#f8dfd3;color:var(--terra-2)}
+.dish-side{display:grid;justify-items:end;gap:8px}
+.dish-side b{font-family:Fraunces,serif;font-size:1.25rem;color:var(--dark);white-space:nowrap}
+.add{width:40px;height:40px;border-radius:50%;border:0;background:var(--terra);color:#fff;font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;transition:transform .2s,background .2s}
+.add:hover{background:var(--terra-2);transform:scale(1.08)}
+.add.added{background:var(--olive)}
+
+/* O nas */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.about-art{position:relative;aspect-ratio:5/4;border-radius:var(--r);overflow:hidden;background:
+  radial-gradient(circle at 30% 30%,rgba(255,255,255,.18),transparent 40%),
+  linear-gradient(135deg,var(--olive),#3f4826)}
+.about-art::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 14px,transparent 14px 28px)}
+.about-art .quote{position:absolute;inset:auto 28px 28px 28px;color:#fff;font-family:Fraunces,serif;font-style:italic;font-size:1.6rem;line-height:1.3}
+.about-art .big{position:absolute;top:24px;left:28px;font-size:4rem}
+.about p{margin-bottom:14px}
+.stats{display:flex;gap:36px;margin-top:26px}
+.stats b{display:block;font-family:Fraunces,serif;font-size:2.2rem;color:var(--terra);line-height:1.1}
+.stats span{font-size:.9rem;color:var(--muted)}
+
+/* Rezerwacja stolika */
+.reserve-sec{background:var(--dark);color:#e9d9c6}
+.reserve-sec h2{color:#fff}
+.reserve-sec .sec-head p{color:#b9a693}
+.reserve{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:14px;align-items:end;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:26px}
+.reserve label{display:grid;gap:6px;font-size:.82rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#b9a693}
+.reserve input,.reserve select{font-size:1rem;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;color-scheme:dark}
+.reserve input::placeholder{color:#8f7d6e}
+.reserve input:focus,.reserve select:focus{outline:none;border-color:var(--terra)}
+.reserve select option{color:var(--dark)}
+.reserve-ok{margin-top:18px;padding:16px 20px;border-radius:14px;background:rgba(95,107,58,.35);border:1px solid rgba(231,232,214,.25);color:#fff;font-weight:500}
+.reserve-ok[hidden]{display:none}
+
+/* Kontakt */
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.c-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:30px}
+.c-card h3{font-size:1.5rem;margin-bottom:12px}
+.c-card p,.c-card li{color:var(--muted)}
+.c-card ul{list-style:none;display:grid;gap:6px}
+.c-card li{display:flex;justify-content:space-between;gap:12px}
+.c-card li.today{color:var(--terra);font-weight:700}
+.open-now{display:inline-block;margin-top:14px;font-weight:700;font-size:.9rem;padding:6px 12px;border-radius:999px;background:var(--olive-soft);color:var(--olive)}
+.open-now.closed{background:#f8dfd3;color:var(--terra-2)}
+
+footer{background:var(--dark);color:#9c8a7b;text-align:center;padding:28px 0;font-size:.88rem;border-top:1px solid rgba(255,255,255,.08)}
+
+/* Koszyk */
+.cart-btn{position:fixed;right:22px;bottom:22px;z-index:60;display:flex;align-items:center;gap:12px;background:var(--dark);color:#fff;border:0;border-radius:999px;padding:14px 22px 14px 16px;font-weight:700;cursor:pointer;box-shadow:0 18px 40px -14px rgba(43,29,22,.7);transition:transform .2s}
+.cart-btn:hover{transform:translateY(-3px)}
+.cart-btn .count{min-width:30px;height:30px;border-radius:999px;background:var(--terra);display:grid;place-items:center;font-size:.9rem;padding:0 8px}
+.cart-btn.bump{animation:bump .4s ease}
+@keyframes bump{40%{transform:scale(1.1)}}
+.overlay{position:fixed;inset:0;z-index:70;background:rgba(43,29,22,.45);opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:80;width:min(420px,100%);background:var(--cream);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s ease;box-shadow:-20px 0 50px -20px rgba(43,29,22,.4)}
+.drawer.show{transform:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:22px 24px;border-bottom:1px solid var(--line)}
+.drawer-head h3{font-size:1.6rem}
+.x{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.3rem;cursor:pointer}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 24px}
+.line{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:14px 0;border-bottom:1px dashed var(--line)}
+.line b{color:var(--dark)}
+.line .sum{font-weight:700;color:var(--dark)}
+.qty{display:flex;align-items:center;gap:10px;grid-column:1/-1}
+.qty button{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-weight:700;cursor:pointer;color:var(--dark)}
+.qty button:hover{border-color:var(--terra);color:var(--terra)}
+.qty span{min-width:18px;text-align:center;font-weight:700}
+.cart-empty{text-align:center;color:var(--muted);padding:50px 10px}
+.cart-empty div{font-size:3rem;margin-bottom:10px}
+.drawer-foot{padding:20px 24px 24px;border-top:1px solid var(--line);background:#fff}
+.mode{display:grid;grid-template-columns:1fr 1fr;background:var(--paper);border-radius:999px;padding:4px;margin-bottom:16px}
+.mode button{border:0;background:transparent;border-radius:999px;padding:10px;font-weight:700;cursor:pointer;color:var(--muted)}
+.mode button[aria-pressed="true"]{background:#fff;color:var(--dark);box-shadow:0 4px 12px -6px rgba(43,29,22,.35)}
+.progress{font-size:.85rem;color:var(--olive);margin-bottom:10px}
+.bar{height:6px;border-radius:3px;background:var(--paper);overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--olive);transition:width .3s}
+.rows{display:grid;gap:6px;margin-bottom:16px;font-size:.95rem}
+.rows div{display:flex;justify-content:space-between}
+.rows .grand{font-family:Fraunces,serif;font-size:1.4rem;color:var(--dark);font-weight:600;padding-top:8px;border-top:1px solid var(--line);margin-top:4px}
+.drawer-foot .btn{width:100%}
+
+.modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(43,29,22,.55)}
+.modal[hidden]{display:none}
+.modal-box{background:var(--cream);border-radius:24px;padding:40px 32px;max-width:420px;width:100%;text-align:center;animation:pop .35s ease}
+@keyframes pop{from{transform:scale(.92);opacity:0}}
+.modal-box .emoji{font-size:3.4rem}
+.modal-box h3{font-size:2rem;margin:10px 0}
+.modal-box p{color:var(--muted)}
+.modal-box .num{display:inline-block;margin:18px 0;padding:10px 18px;border-radius:12px;background:#fff;border:1px dashed var(--terra);font-weight:700;color:var(--terra)}
+.modal-box small{display:block;color:var(--muted);margin-bottom:20px}
+
+@media (max-width:980px){
+  .menu{display:none}
+  .hero-grid,.about{grid-template-columns:1fr}
+  .pizza-wrap{margin:0 auto;max-width:400px}
+  .dishes{grid-template-columns:1fr}
+  .reserve{grid-template-columns:1fr 1fr}
+  .reserve .btn{grid-column:1/-1}
+  .contact-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  section{padding:72px 0}
+  .dish{grid-template-columns:48px 1fr auto;gap:12px;padding:14px}
+  .dish-ico{width:48px;height:48px;font-size:1.4rem}
+  .reserve{grid-template-columns:1fr}
+  .cart-btn{right:14px;bottom:14px}
+  .nav .btn{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">Projekt demonstracyjny – firma fikcyjna. Autor: Sebastian Jakubiec <a href="../../index.html">← Wróć do portfolio</a></div>
+
+<header>
+  <nav class="wrap nav">
+    <a href="#" class="logo">Trattoria <em>Rosmarino</em><small>Cucina italiana</small></a>
+    <ul class="menu">
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#o-nas">O nas</a></li>
+      <li><a href="#stolik">Rezerwacja</a></li>
+      <li><a href="#kontakt">Kontakt</a></li>
+    </ul>
+    <a href="#menu" class="btn btn-terra btn-sm">Zamów online</a>
+  </nav>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker">Benvenuti!</p>
+      <h1>Prawdziwa włoska kuchnia, <em>prosto z pieca</em></h1>
+      <p class="lead">Pizza neapolitańska z pieca opalanego drewnem, domowe makarony i desery według rodzinnych przepisów. Zjedz u nas albo zamów z dostawą do domu.</p>
+      <div class="cta">
+        <a href="#menu" class="btn btn-terra">Zamów online</a>
+        <a href="#stolik" class="btn btn-outline">Zarezerwuj stolik</a>
+      </div>
+      <ul class="info">
+        <li>🕒 Codziennie 12:00–22:00</li>
+        <li>🛵 Darmowa dostawa od 80 zł</li>
+        <li>⏱️ ok. 45 min</li>
+      </ul>
+    </div>
+    <div class="pizza-wrap" aria-hidden="true">
+      <div class="board"></div>
+      <svg class="pizza" viewBox="0 0 300 300">
+        <defs>
+          <radialGradient id="crust" cx="50%" cy="50%" r="50%">
+            <stop offset="80%" stop-color="#e9b265"/>
+            <stop offset="94%" stop-color="#d08f45"/>
+            <stop offset="100%" stop-color="#a86a2f"/>
+          </radialGradient>
+          <radialGradient id="sauce" cx="45%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#d9502f"/>
+            <stop offset="100%" stop-color="#b23a22"/>
+          </radialGradient>
+        </defs>
+        <circle cx="150" cy="150" r="148" fill="url(#crust)"/>
+        <circle cx="150" cy="150" r="124" fill="url(#sauce)"/>
+        <g fill="#fff3d6">
+          <path d="M98 88c16-8 34 2 32 18s-24 22-38 14-10-26 6-32z"/>
+          <path d="M178 76c14-4 30 6 28 20s-22 18-34 10-8-26 6-30z"/>
+          <path d="M196 158c18-6 34 8 30 24s-26 22-40 12-8-30 10-36z"/>
+          <path d="M104 178c16-6 32 6 30 22s-24 20-36 12-10-28 6-34z"/>
+          <path d="M146 128c12-4 24 4 22 16s-18 16-28 10-6-22 6-26z"/>
+          <path d="M70 136c9-3 18 3 16 12s-14 12-20 8-5-17 4-20z"/>
+          <path d="M156 216c10-3 20 3 18 12s-14 12-22 8-6-17 4-20z"/>
+        </g>
+        <g fill="#3e7d3a">
+          <path d="M0 0Q15-13 32 0Q15 13 0 0z" transform="translate(112 112) rotate(-25)"/>
+          <path d="M0 0Q15-13 32 0Q15 13 0 0z" transform="translate(186 120) rotate(40)"/>
+          <path d="M0 0Q15-13 32 0Q15 13 0 0z" transform="translate(134 196) rotate(10)"/>
+          <path d="M0 0Q15-13 32 0Q15 13 0 0z" transform="translate(210 200) rotate(-60)"/>
+          <path d="M0 0Q15-13 32 0Q15 13 0 0z" transform="translate(84 172) rotate(70)"/>
+        </g>
+        <g stroke="#7a4a1e" stroke-width="2" opacity=".28">
+          <line x1="150" y1="2" x2="150" y2="298"/><line x1="2" y1="150" x2="298" y2="150"/>
+          <line x1="45" y1="45" x2="255" y2="255"/><line x1="255" y1="45" x2="45" y2="255"/>
+        </g>
+      </svg>
+      <span class="deco d1">🍅</span><span class="deco d2">🌿</span><span class="deco d3">🧄</span>
+      <div class="tag-hot"><b>Pizza dnia</b>Margherita −20%</div>
+    </div>
+  </div>
+</section>
+
+<section id="menu" class="menu-sec">
+  <div class="wrap">
+    <div class="sec-head center">
+      <p class="kicker">Il nostro menu</p>
+      <h2>Wybierz i zamów online</h2>
+      <p>Dodaj dania do koszyka i wybierz dostawę albo odbiór osobisty.</p>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="dishes" id="dishes"></div>
+  </div>
+</section>
+
+<section id="o-nas">
+  <div class="wrap about">
+    <div class="about-art" aria-hidden="true">
+      <span class="big">🇮🇹</span>
+      <p class="quote">„Dobre jedzenie to proste składniki i dużo serca.”</p>
+    </div>
+    <div>
+      <p class="kicker">O nas</p>
+      <h2 style="font-size:clamp(2.1rem,4.2vw,3.2rem);margin:6px 0 18px">Rodzinna trattoria w sercu miasta</h2>
+      <p>Mąkę, pomidory San Marzano i oliwę sprowadzamy prosto z Włoch, a ciasto na pizzę dojrzewa u nas aż 48 godzin. Makarony robimy codziennie rano.</p>
+      <p>Wpadnij na lunch, kolację z rodziną albo zamów ulubione dania do domu.</p>
+      <div class="stats">
+        <div><b>48 h</b><span>dojrzewania ciasta</span></div>
+        <div><b>450°C</b><span>w piecu opalanym drewnem</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="stolik" class="reserve-sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Prenotazione</p>
+      <h2>Zarezerwuj stolik</h2>
+      <p>Wybierz dzień, godzinę i liczbę osób – potwierdzimy rezerwację SMS-em.</p>
+    </div>
+    <form class="reserve" id="reserve">
+      <label>Data<input type="date" id="r-date" required></label>
+      <label>Godzina<select id="r-time"></select></label>
+      <label>Liczba osób<select id="r-people"></select></label>
+      <label>Imię<input id="r-name" placeholder="Twoje imię" required autocomplete="given-name"></label>
+      <button class="btn btn-terra" type="submit">Rezerwuję</button>
+    </form>
+    <p class="reserve-ok" id="reserve-ok" hidden></p>
+  </div>
+</section>
+
+<section id="kontakt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Contatti</p>
+      <h2>Gdzie nas znaleźć</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="c-card">
+        <h3>Adres</h3>
+        <p>ul. Słoneczna 21<br>00-000 Twoje Miasto</p>
+        <p style="margin-top:12px">Tel. 123 456 789<br>kontakt@rosmarino.example</p>
+      </div>
+      <div class="c-card">
+        <h3>Godziny otwarcia</h3>
+        <ul id="hours">
+          <li data-d="1"><span>Pon – Czw</span><span>12:00–22:00</span></li>
+          <li data-d="5"><span>Pt – Sob</span><span>12:00–23:00</span></li>
+          <li data-d="0"><span>Niedziela</span><span>12:00–21:00</span></li>
+        </ul>
+        <span class="open-now" id="open-now"></span>
+      </div>
+      <div class="c-card">
+        <h3>Dostawa</h3>
+        <p>Dowozimy w promieniu 7 km. Zamówienia od 80 zł dowozimy za darmo, poniżej – 9 zł. Średni czas dostawy to 45 minut.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>© 2026 Trattoria Rosmarino · projekt demonstracyjny, firma fikcyjna</footer>
+
+<button class="cart-btn" id="cart-btn" aria-label="Otwórz koszyk"><span class="count" id="cart-count">0</span><span id="cart-total">Koszyk</span></button>
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-label="Koszyk" aria-hidden="true">
+  <div class="drawer-head"><h3>Twoje zamówienie</h3><button class="x" id="close-cart" aria-label="Zamknij koszyk">×</button></div>
+  <div class="drawer-body" id="cart-lines"></div>
+  <div class="drawer-foot" id="cart-foot">
+    <div class="mode" id="mode">
+      <button type="button" data-mode="dostawa" aria-pressed="true">🛵 Dostawa</button>
+      <button type="button" data-mode="odbior" aria-pressed="false">🏃 Odbiór</button>
+    </div>
+    <p class="progress" id="progress"></p>
+    <div class="bar" id="bar"><i id="bar-fill"></i></div>
+    <div class="rows">
+      <div><span>Produkty</span><span id="sub">0 zł</span></div>
+      <div><span>Dostawa</span><span id="fee">0 zł</span></div>
+      <div class="grand"><span>Razem</span><span id="grand">0 zł</span></div>
+    </div>
+    <button class="btn btn-terra" id="order" disabled>Złóż zamówienie</button>
+  </div>
+</aside>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal-box">
+    <div class="emoji">🍕</div>
+    <h3 id="m-title">Grazie! Zamówienie przyjęte</h3>
+    <p id="m-text"></p>
+    <div class="num" id="m-num"></div>
+    <small>To wersja demonstracyjna – zamówienie nie zostało nigdzie wysłane.</small>
+    <button class="btn btn-terra" id="m-close">Super, dziękuję</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const MENU = [
+    { id: 1, cat: 'przystawki', name: 'Bruschetta al pomodoro', desc: 'Chrupiąca grzanka, pomidory, czosnek, bazylia, oliwa', price: 24, tags: ['wege'], ico: '🍅' },
+    { id: 2, cat: 'przystawki', name: 'Burrata z pomidorkami', desc: 'Kremowa burrata, pomidorki koktajlowe, pesto, grzanki', price: 42, tags: ['wege'], ico: '🧀' },
+    { id: 3, cat: 'przystawki', name: 'Carpaccio wołowe', desc: 'Polędwica wołowa, rukola, parmezan, kapary', price: 39, tags: [], ico: '🥩' },
+    { id: 4, cat: 'pizza', name: 'Margherita', desc: 'Sos z pomidorów San Marzano, mozzarella fior di latte, bazylia', price: 34, tags: ['wege'], ico: '🍕' },
+    { id: 5, cat: 'pizza', name: 'Diavola', desc: 'Sos pomidorowy, mozzarella, pikantne salami, chili', price: 42, tags: ['ostre'], ico: '🌶️' },
+    { id: 6, cat: 'pizza', name: 'Quattro formaggi', desc: 'Mozzarella, gorgonzola, parmezan, pecorino', price: 44, tags: ['wege'], ico: '🧀' },
+    { id: 7, cat: 'pizza', name: 'Prosciutto e rucola', desc: 'Mozzarella, szynka parmeńska, rukola, parmezan', price: 46, tags: [], ico: '🍕' },
+    { id: 8, cat: 'makarony', name: 'Spaghetti carbonara', desc: 'Guanciale, żółtko, pecorino romano, czarny pieprz', price: 41, tags: [], ico: '🍝' },
+    { id: 9, cat: 'makarony', name: 'Tagliatelle al ragù', desc: 'Domowy makaron, wolno duszony sos mięsny', price: 43, tags: [], ico: '🍝' },
+    { id: 10, cat: 'makarony', name: 'Penne all’arrabbiata', desc: 'Pikantny sos pomidorowy, czosnek, natka pietruszki', price: 36, tags: ['wege', 'ostre'], ico: '🌶️' },
+    { id: 11, cat: 'makarony', name: 'Risotto ai funghi', desc: 'Ryż carnaroli, borowiki, parmezan, masło', price: 45, tags: ['wege'], ico: '🍄' },
+    { id: 12, cat: 'desery', name: 'Tiramisu', desc: 'Mascarpone, biszkopty, espresso, kakao', price: 24, tags: ['wege'], ico: '🍰' },
+    { id: 13, cat: 'desery', name: 'Panna cotta', desc: 'Śmietankowy deser z sosem z owoców leśnych', price: 22, tags: ['wege'], ico: '🍮' },
+    { id: 14, cat: 'desery', name: 'Cannoli (2 szt.)', desc: 'Chrupiące rurki z kremem ricotta i pistacjami', price: 21, tags: ['wege'], ico: '🥐' },
+    { id: 15, cat: 'napoje', name: 'Lemoniada domowa 0,4 l', desc: 'Cytryna, mięta, odrobina miodu', price: 14, tags: [], ico: '🍋' },
+    { id: 16, cat: 'napoje', name: 'Espresso', desc: 'Ziarno 100% arabica', price: 9, tags: [], ico: '☕' },
+    { id: 17, cat: 'napoje', name: 'Woda gazowana 0,5 l', desc: 'Podawana z cytryną', price: 10, tags: [], ico: '💧' },
+  ];
+  const CATS = [['wszystko', 'Wszystko'], ['przystawki', 'Przystawki'], ['pizza', 'Pizza'], ['makarony', 'Makarony i risotto'], ['desery', 'Desery'], ['napoje', 'Napoje']];
+  const FREE_FROM = 80, FEE = 9, STORE = 'rosmarino-koszyk';
+  const $ = id => document.getElementById(id);
+  const zl = n => `${n.toFixed(2).replace('.', ',').replace(',00', '')} zł`;
+
+  let cat = 'wszystko';
+  let cart = {};
+  let mode = 'dostawa';
+  try { cart = JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (e) { cart = {}; }
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(cart)); } catch (e) {} };
+
+  // Zakładki kategorii
+  CATS.forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.className = 'tab'; b.type = 'button'; b.role = 'tab'; b.textContent = label;
+    b.setAttribute('aria-selected', id === cat);
+    b.addEventListener('click', () => {
+      cat = id;
+      document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t === b));
+      renderMenu();
+    });
+    $('tabs').appendChild(b);
+  });
+
+  function renderMenu() {
+    const list = MENU.filter(d => cat === 'wszystko' || d.cat === cat);
+    $('dishes').innerHTML = list.map(d => `
+      <article class="dish">
+        <div class="dish-ico" aria-hidden="true">${d.ico}</div>
+        <div>
+          <h3>${d.name}${d.tags.map(t => `<span class="badge ${t}">${t}</span>`).join('')}</h3>
+          <p>${d.desc}</p>
+        </div>
+        <div class="dish-side">
+          <b>${zl(d.price)}</b>
+          <button class="add" type="button" data-id="${d.id}" aria-label="Dodaj ${d.name} do koszyka">+</button>
+        </div>
+      </article>`).join('');
+  }
+
+  $('dishes').addEventListener('click', e => {
+    const b = e.target.closest('.add');
+    if (!b) return;
+    const id = b.dataset.id;
+    cart[id] = (cart[id] || 0) + 1;
+    save(); renderCart();
+    b.classList.add('added'); b.textContent = '✓';
+    setTimeout(() => { b.classList.remove('added'); b.textContent = '+'; }, 900);
+    const cb = $('cart-btn'); cb.classList.remove('bump'); void cb.offsetWidth; cb.classList.add('bump');
+  });
+
+  function totals() {
+    const sub = Object.entries(cart).reduce((s, [id, q]) => s + MENU.find(m => m.id == id).price * q, 0);
+    const fee = mode === 'dostawa' && sub > 0 && sub < FREE_FROM ? FEE : 0;
+    return { sub, fee, grand: sub + fee, count: Object.values(cart).reduce((a, b) => a + b, 0) };
+  }
+
+  function renderCart() {
+    const { sub, fee, grand, count } = totals();
+    $('cart-count').textContent = count;
+    $('cart-total').textContent = count ? zl(grand) : 'Koszyk';
+    const ids = Object.keys(cart);
+    $('cart-lines').innerHTML = ids.length ? ids.map(id => {
+      const d = MENU.find(m => m.id == id);
+      return `<div class="line"><b>${d.name}</b><span class="sum">${zl(d.price * cart[id])}</span>
+        <div class="qty"><button type="button" data-dec="${id}" aria-label="Mniej">−</button><span>${cart[id]}</span><button type="button" data-inc="${id}" aria-label="Więcej">+</button></div></div>`;
+    }).join('') : '<div class="cart-empty"><div>🧺</div>Koszyk jest pusty.<br>Dodaj coś pysznego z menu!</div>';
+    $('sub').textContent = zl(sub);
+    $('fee').textContent = mode === 'odbior' ? '—' : (fee ? zl(fee) : 'gratis');
+    $('grand').textContent = zl(grand);
+    const showBar = mode === 'dostawa' && sub > 0;
+    $('bar').style.display = showBar ? '' : 'none';
+    $('progress').style.display = showBar ? '' : 'none';
+    $('bar-fill').style.width = `${Math.min(100, sub / FREE_FROM * 100)}%`;
+    $('progress').textContent = sub >= FREE_FROM ? '🎉 Masz darmową dostawę!' : `Brakuje ${zl(FREE_FROM - sub)} do darmowej dostawy`;
+    $('order').disabled = count === 0;
+  }
+
+  $('cart-lines').addEventListener('click', e => {
+    const inc = e.target.dataset.inc, dec = e.target.dataset.dec;
+    if (inc) cart[inc]++;
+    if (dec) { cart[dec]--; if (cart[dec] <= 0) delete cart[dec]; }
+    if (inc || dec) { save(); renderCart(); }
+  });
+
+  $('mode').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    mode = b.dataset.mode;
+    $('mode').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    renderCart();
+  });
+
+  const openCart = () => { $('drawer').classList.add('show'); $('overlay').classList.add('show'); $('drawer').setAttribute('aria-hidden', 'false'); };
+  const closeCart = () => { $('drawer').classList.remove('show'); $('overlay').classList.remove('show'); $('drawer').setAttribute('aria-hidden', 'true'); };
+  $('cart-btn').addEventListener('click', openCart);
+  $('close-cart').addEventListener('click', closeCart);
+  $('overlay').addEventListener('click', closeCart);
+
+  $('order').addEventListener('click', () => {
+    const { grand } = totals();
+    const num = 'R-' + Math.floor(1000 + Math.random() * 9000);
+    $('m-num').textContent = `Numer zamówienia: ${num}`;
+    $('m-text').textContent = mode === 'dostawa'
+      ? `Do zapłaty ${zl(grand)}. Dostawa za ok. 40–50 minut.`
+      : `Do zapłaty ${zl(grand)}. Zamówienie będzie gotowe do odbioru za ok. 20 minut.`;
+    cart = {}; save(); renderCart(); closeCart();
+    $('modal').hidden = false;
+    $('m-close').focus();
+  });
+  $('m-close').addEventListener('click', () => { $('modal').hidden = true; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCart(); $('modal').hidden = true; } });
+
+  // Rezerwacja stolika
+  const pad = n => String(n).padStart(2, '0');
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  $('r-date').min = todayStr; $('r-date').value = todayStr;
+  for (let h = 12; h <= 21; h++) ['00', '30'].forEach(m => $('r-time').add(new Option(`${h}:${m}`)));
+  $('r-time').value = '19:00';
+  for (let p = 1; p <= 10; p++) $('r-people').add(new Option(p === 1 ? '1 osoba' : `${p} ${p < 5 ? 'osoby' : 'osób'}`, p));
+  $('r-people').value = '2';
+  $('reserve').addEventListener('submit', e => {
+    e.preventDefault();
+    const [y, m, d] = $('r-date').value.split('-').map(Number);
+    const date = new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(y, m - 1, d));
+    const ok = $('reserve-ok');
+    ok.textContent = `Dziękujemy, ${$('r-name').value.trim()}! Stolik (${$('r-people').selectedOptions[0].text}) czeka na Ciebie: ${date}, godz. ${$('r-time').value}. W wersji demo nic nie zostało wysłane.`;
+    ok.hidden = false;
+  });
+
+  // Godziny otwarcia na żywo
+  const day = now.getDay();
+  const ranges = { 0: [12, 21], 1: [12, 22], 2: [12, 22], 3: [12, 22], 4: [12, 22], 5: [12, 23], 6: [12, 23] };
+  const [o, c] = ranges[day];
+  const h = now.getHours() + now.getMinutes() / 60;
+  const open = h >= o && h < c;
+  const badge = $('open-now');
+  badge.textContent = open ? `Otwarte teraz · do ${c}:00` : (h < o ? `Zamknięte · otwieramy o ${o}:00` : 'Zamknięte · zapraszamy jutro od 12:00');
+  if (!open) badge.classList.add('closed');
+  const row = day === 0 ? 0 : (day >= 5 ? 5 : 1);
+  document.querySelector(`#hours li[data-d="${row}"]`).classList.add('today');
+
+  renderMenu();
+  renderCart();
+})();
+</script>
+</body>
+</html>
